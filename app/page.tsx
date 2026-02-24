@@ -1,10 +1,17 @@
 "use client";
-
+import React from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
 
-export default function Home() {
+export default  function Home() {
   const { data: session, status } = useSession();
+ const [events, setEvents] = React.useState<any>(null);
 
+  React.useEffect(() => {
+    fetch("/api/events/today")
+      .then((r) => r.json())
+      .then(setEvents);
+  }, []);
+  console.log(events);
   return (
     <main style={{ padding: 40, fontFamily: "system-ui" }}>
       {/* Auth Bar */}
@@ -111,6 +118,55 @@ export default function Home() {
 
       {/* Today Section */}
       <h2 style={{ fontSize: 20, marginBottom: 12 }}>Today</h2>
+      <div style={{ marginTop: 12 }}>
+  <h3 style={{ fontSize: 16, marginBottom: 8 }}>Meetings (from Google Calendar)</h3>
+
+  {!events ? (
+    <div style={{ color: "#777" }}>Loading…</div>
+  ) : (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {events.items.map((e: any) => (
+        <div
+          key={e.id}
+          style={{
+            border: "1px solid #eee",
+            borderRadius: 12,
+            padding: "10px 12px",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <div
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: 999,
+              background: "#34C759", // meetings green
+              flexShrink: 0,
+            }}
+          />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>{e.summary || "(No title)"}</div>
+            <div style={{ fontSize: 12, color: "#777" }}>
+              {(e.start?.dateTime || e.start?.date || "").toString()}
+            </div>
+          </div>
+          {e.htmlLink ? (
+            <a
+              href={e.htmlLink}
+              target="_blank"
+              rel="noreferrer"
+              style={{ fontSize: 12, color: "#4F8EF7" }}
+            >
+              Open
+            </a>
+          ) : null}
+        </div>
+      ))}
+    </div>
+  )}
+</div>
 
       {/* Task Card */}
       <div
